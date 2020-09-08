@@ -14,12 +14,67 @@ router.get('/', function (req, res, next) {
 //----------------API---------------------------
 let json = {}
 
+router.get('/api/traerJugadoresEquipo/:id', async (req, res, next) => {
+    let all = await pool.query(`select * from jugador where id_equipo=${req.params.id}`);
+    json = all.rows
+    // console.log(json)
+    res.json(all.rows)
+})
 router.get('/api/traerEquipos/:id', async (req, res, next) => {
     let all = await pool.query(`select * from equipo where id_categoria=${req.params.id}`);
     json = all.rows
     // console.log(json)
     res.json(all.rows)
 })
+
+router.get('/api/traerDetalleEquipo/:id', async (req, res, next) => {
+    let all = await pool.query(`select * from equipo where id=${req.params.id}`);
+    json = all.rows
+    // console.log(json)
+    res.json(all.rows)
+})
+router.get('/api/tablaPosiciones/:id', async (req, res, next) => {
+    let all = await pool.query(`select e.id, e.nombre as "Equipo",dtc.partidos_jugados,dtc.partidos_perdidos,dtc.partidos_empatados,dtc.puntos 
+                                from detalle_campeonato dtc join equipo e
+                                    on(dtc.id_equipo=e.id)
+                                    join campeonato ca
+                                    on(dtc.id_campeonato=ca.id)
+                                    where dtc.id_campeonato = ${req.params.id}`);
+    json = all.rows
+    // console.log(json)
+    res.json(all.rows)
+})
+router.get('/api/traerCampeonatos', async (req, res, next) => {
+    let all = await pool.query(`select * from campeonato`);
+    json = all.rows
+    // console.log(json)
+    res.json(all.rows)
+})
+router.get('/api/traerPartidosPorCampeonato/:id/:fecha', async (req, res, next) => {
+    let all = await pool.query(`select pa.fecha,pa.goles_local,pa.goles_visitante,el.nombre as "Equipo Local",ev.nombre as "Equipo Visitante",ar.nombre || ' ' || ar.apellido as "Arbitro",can.nombre as "Estadio",cam.nombre as "Campeonato"
+                                from partido pa join equipo el
+                                    on(pa.id_equipo_local=el.id)
+                                    join equipo ev
+                                    on(pa.id_equipo_visitante=ev.id)
+                                    join arbitro ar
+                                    on(pa.id_arbitro=ar.id)
+                                    join cancha can
+                                    on(pa.id_cancha=can.id)
+                                    join campeonato cam
+                                    on(pa.id_campeonato=cam.id)
+                                    where cam.id = ${req.params.id} and pa.fecha = '${req.params.fecha}'`);
+    json = all.rows
+    // console.log(json)
+    res.json(all.rows)
+})
+router.post('/api/registrarCampeonato', async (req, res, next) => {
+    let body=req.body
+    let all = await pool.query(`insert into campeonato(nombre,fecha_inicio,id_categoria)values('${body.nombre}','${body.fecha_inicio}',${body.id_categoria})`);
+    json = all.rows
+    // console.log(json)
+    res.json(all.rows)
+})
+
 
 
 
